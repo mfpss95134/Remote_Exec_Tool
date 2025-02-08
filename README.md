@@ -1,2 +1,3 @@
 # Remote_Exec_Tool
-這是在練習C Socket Programming寫的工具，主要功能是可以接收執行來自遠端的指令，作為管理用途。
+目前狀態：大部分指令可以正常執行。
+後續改進：目前使用 `popen` 執行指令，預計之後改成 `fork` + `exec`
