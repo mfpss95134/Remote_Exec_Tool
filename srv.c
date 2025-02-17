@@ -7,20 +7,20 @@
 #include <signal.h>
 
 #define PORT 12345
-#define MAX_CLIENTS 100
+#define MAX_CLIENTS 50
 
 typedef struct {
     int socket;
     struct sockaddr_in addr;
     pthread_t thread;
     int id;
-} client_t;
+} client_info_t;
 
-client_t *clients[MAX_CLIENTS];
+client_info_t *clients[MAX_CLIENTS];
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *handle_client(void *arg) {
-    client_t *cli = (client_t *)arg;
+    client_info_t *cli = (client_info_t *)arg;
     char buffer[1024];
 
     printf("\n[INFO] Client %d connected.\n", cli->id);
@@ -31,7 +31,7 @@ void *handle_client(void *arg) {
 }
 
 void list_clients() {
-    pthread_mutex_lock(&clients_mutex);
+    //pthread_mutex_lock(&clients_mutex);
     printf("Active connections:\n");
     printf("----------------------------------------\n");
     for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -42,17 +42,19 @@ void list_clients() {
                    ntohs(clients[i]->addr.sin_port));
         }
     }
-    pthread_mutex_unlock(&clients_mutex);
+    //pthread_mutex_unlock(&clients_mutex);
     printf("----------------------------------------\n\n");
 }
 
-void send_message_to_client(int id, const char *msg) {
+void cmd_to_cli(int id, const char *msg) {
+    //這邊加上mutex鎖，防止多個client同時回傳，造成版面混亂，但基本上不會遇到
     pthread_mutex_lock(&clients_mutex);
     if (clients[id] != NULL) {
+        // 對client端下指令
         send(clients[id]->socket, msg, strlen(msg), 0);
         
         // 接收來自 client 的回應
-        char buffer[102400];
+        char buffer[10240];
         int bytes_received = recv(clients[id]->socket, buffer, sizeof(buffer) - 1, 0);
         if (bytes_received > 0) {
             buffer[bytes_received] = '\0';
@@ -83,7 +85,7 @@ void *command_handler(void *arg) {
                 int id = atoi(token);
                 char *msg = command + 5 + strlen(token) + 1; // Extract the rest of the message
                 if (strlen(msg) > 0) {
-                    send_message_to_client(id, msg);
+                    cmd_to_cli(id, msg);
                 } else {
                     printf("Usage: send <client_id> <message>\n");
                 }
@@ -130,7 +132,7 @@ int main() {
             continue;
         }
         
-        client_t *cli = (client_t *)malloc(sizeof(client_t));
+        client_info_t *cli = (client_info_t *)malloc(sizeof(client_info_t));
         cli->socket = new_socket;
         cli->addr = client_addr;
         cli->id = id;
