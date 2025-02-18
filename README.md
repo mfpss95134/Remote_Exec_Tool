@@ -9,6 +9,6 @@
 	- 新增重新連線功能：讓 client 斷線後會自動連回 server，不會 lose connection
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/mfpss95134/Remote_Exec_Tool/refs/heads/main/demo.png">
+<img src="https://raw.githubusercontent.com/mfpss95134/Perf_Profiling_Toolkit/refs/heads/main/demo.png">
 <div align="left">
 <br>
